@@ -1,65 +1,50 @@
-const XDate = require('xdate');
+import {DateTime} from 'luxon';
 const {toMarkingFormat} = require('./interface');
 
 const latinNumbersPattern = /[0-9]/g;
 
-function isValidXDate(date: any) {
-  return date && (date instanceof XDate);
+function isValidDateTime(date: any) {
+  return date && DateTime.isDateTime(date) && (date as DateTime).isValid;
 }
 
-export function sameMonth(a?: XDate, b?: XDate) {
-  if (!isValidXDate(a) || !isValidXDate(b)) {
+export function sameMonth(a?: DateTime, b?: DateTime) {
+  if (!isValidDateTime(a) || !isValidDateTime(b)) {
     return false;
-  } else {
-    return a?.getFullYear() === b?.getFullYear() && a?.getMonth() === b?.getMonth();
   }
+  return a?.hasSame(b as DateTime, 'month');
 }
 
-export function sameDate(a?: XDate, b?: XDate) {
-  if (!isValidXDate(a) || !isValidXDate(b)) {
+export function sameDate(a?: DateTime, b?: DateTime) {
+  if (!isValidDateTime(a) || !isValidDateTime(b)) {
     return false;
-  } else {
-    return a?.getFullYear() === b?.getFullYear() && a?.getMonth() === b?.getMonth() && a?.getDate() === b?.getDate();
-  } 
+  }
+  return a?.hasSame(b as DateTime, 'day');
 }
 
 export function sameWeek(a: string, b: string, firstDayOfWeek: number) {
   const weekDates = getWeekDates(a, firstDayOfWeek, 'yyyy-MM-dd');
-  const element = weekDates instanceof XDate ? new XDate(b) : b;
-  return weekDates?.includes(element);
+  return (weekDates as string[] | undefined)?.includes(b);
 }
 
 export function isPastDate(date: string) {
-  const today = new XDate();
-  const d = new XDate(date);
+  const d = DateTime.fromISO(date);
 
-  if (today.getFullYear() > d.getFullYear()) {
-    return true;
-  }
-  if (today.getFullYear() === d.getFullYear()) {
-    if (today.getMonth() > d.getMonth()) {
-      return true;
-    }
-    if (today.getMonth() === d.getMonth()) {
-      if (today.getDate() > d.getDate()) {
-        return true;
-      }
-    }
-  }
-  return false;
+  if (isToday(d)) return false;
+  return d.diffNow('day').days < 0;
 }
 
-export function isToday(date?: XDate | string) {
-  const d = date instanceof XDate ? date : new XDate(date);
-  return sameDate(d, XDate.today());
+export function isToday(date?: DateTime | string) {
+  if (!date) return true;
+  const d = DateTime.isDateTime(date) ? date : DateTime.fromISO(date);
+  return sameDate(d, DateTime.now());
 }
 
-export function isGTE(a: XDate, b: XDate) {
-  return b.diffDays(a) > -1;
+export function isGTE(a: DateTime, b: DateTime) {
+  return b.diff(a, 'days').days < 1;
 }
 
-export function isLTE(a: XDate, b: XDate) {
-  return a.diffDays(b) > -1;
+export function isLTE(a: DateTime, b: DateTime) {
+  return a.diff(b, 'days').days < 1;
 }
 
 export function formatNumbers(date: any) {
@@ -67,24 +52,20 @@ export function formatNumbers(date: any) {
   return numbers ? date.toString().replace(latinNumbersPattern, (char: any) => numbers[+char]) : date;
 }
 
-function fromTo(a: XDate, b: XDate): XDate[] {
-  const days: XDate[] = [];
-  let from = +a;
-  const to = +b;
-
-  for (; from <= to; from = new XDate(from, true).addDays(1).getTime()) {
-    days.push(new XDate(from, true));
+function fromTo(a: DateTime, b: DateTime): DateTime[] {
+  const days: DateTime[] = [];
+  let from = a,
+    to = b;
+  for (; from.toMillis() <= to.toMillis(); from = from.plus({days: 1})) {
+    days.push(from);
   }
   return days;
 }
 
-export function month(date: XDate) { // exported for tests only
-  const year = date.getFullYear(),
-    month = date.getMonth();
-  const days = new XDate(year, month + 1, 0).getDate();
-
-  const firstDay: XDate = new XDate(year, month, 1, 0, 0, 0, true);
-  const lastDay: XDate = new XDate(year, month, days, 0, 0, 0, true);
+export function month(date: DateTime) {
+  // exported for tests only
+  const firstDay = date.startOf('month');
+  const lastDay = date.endOf('month');
 
   return fromTo(firstDay, lastDay);
 }
@@ -98,33 +79,30 @@ export function weekDayNames(firstDayOfWeek = 0) {
   return weekDaysNames;
 }
 
-export function page(date: XDate, firstDayOfWeek = 0, showSixWeeks = false) {
-  const days = month(date);
-  let before: XDate[] = [];
-  let after: XDate[] = [];
+export function page(dt: DateTime, firstDayOfWeek = 0, showSixWeeks = false) {
+  const days = month(dt);
+  let before: DateTime[] = [];
+  let after: DateTime[] = [];
 
-  const fdow = (7 + firstDayOfWeek) % 7 || 7;
+  const fdow = (7 + firstDayOfWeek) % 7;
   const ldow = (fdow + 6) % 7;
 
   firstDayOfWeek = firstDayOfWeek || 0;
 
-  const from = days[0].clone();
-  const daysBefore = from.getDay();
-
-  if (from.getDay() !== fdow) {
-    from.addDays(-(from.getDay() + 7 - fdow) % 7);
+  let from = days[0];
+  const startIndex = from.weekday % 7;
+  if (startIndex !== fdow) {
+    from = from.minus({days: (startIndex + 7 - fdow) % 7});
   }
 
-  const to = days[days.length - 1].clone();
-  const day = to.getDay();
-  if (day !== ldow) {
-    to.addDays((ldow + 7 - day) % 7);
+  let to = days[days.length - 1];
+  const endIndex = to.weekday % 7;
+  if (endIndex !== ldow) {
+    to = to.plus({days: (ldow + 7 - endIndex) % 7});
   }
 
-  const daysForSixWeeks = (daysBefore + days.length) / 6 >= 6;
-
-  if (showSixWeeks && !daysForSixWeeks) {
-    to.addDays(7);
+  if (showSixWeeks) {
+    to = from.plus({weeks: 6}).minus({day: 1});
   }
 
   if (isLTE(from, days[0])) {
@@ -138,15 +116,15 @@ export function page(date: XDate, firstDayOfWeek = 0, showSixWeeks = false) {
   return before.concat(days.slice(1, days.length - 1), after);
 }
 
-export function isDateNotInRange(date: XDate, minDate: string, maxDate: string) {
-  return (minDate && !isGTE(date, new XDate(minDate))) || (maxDate && !isLTE(date, new XDate(maxDate)));
+export function isDateNotInRange(date: DateTime, minDate: string, maxDate: string) {
+  return (minDate && !isGTE(date, DateTime.fromISO(minDate))) || (maxDate && !isLTE(date, DateTime.fromISO(maxDate)));
 }
 
-export function getWeekDates(date: string, firstDay = 0, format?: string) {
-  const d: XDate = new XDate(date);
-  if (date && d.valid()) {
+function getWeekDates(date: string, firstDay = 0, format?: string) {
+  const d = DateTime.fromISO(date);
+  if (d.isValid) {
     const daysArray = [d];
-    let dayOfTheWeek = d.getDay() - firstDay;
+    let dayOfTheWeek = (d.weekday % 7) - firstDay;
     if (dayOfTheWeek < 0) {
       // to handle firstDay > 0
       dayOfTheWeek = 7 + dayOfTheWeek;
@@ -155,7 +133,7 @@ export function getWeekDates(date: string, firstDay = 0, format?: string) {
     let newDate = d;
     let index = dayOfTheWeek - 1;
     while (index >= 0) {
-      newDate = newDate.clone().addDays(-1);
+      newDate = newDate.minus({day: 1});
       daysArray.unshift(newDate);
       index -= 1;
     }
@@ -163,13 +141,13 @@ export function getWeekDates(date: string, firstDay = 0, format?: string) {
     newDate = d;
     index = dayOfTheWeek + 1;
     while (index < 7) {
-      newDate = newDate.clone().addDays(1);
+      newDate = newDate.plus({day: 1});
       daysArray.push(newDate);
       index += 1;
     }
 
     if (format) {
-      return daysArray.map(d => d.toString(format));
+      return daysArray.map(d => d.toFormat(format));
     }
 
     return daysArray;
@@ -180,17 +158,42 @@ export function getPartialWeekDates(date?: string, numberOfDays = 7) {
   let index = 0;
   const partialWeek: string[] = [];
   while (index < numberOfDays) {
-    partialWeek.push(generateDay(date || new XDate(), index));
+    partialWeek.push(generateDay(date || DateTime.now(), index));
     index++;
   }
   return partialWeek;
 }
 
-export function generateDay(originDate: string | XDate, daysOffset = 0) {
-  const baseDate = originDate instanceof XDate ? originDate : new XDate(originDate);
-  return toMarkingFormat(baseDate.clone().addDays(daysOffset));
+export function generateDay(originDate: string | DateTime, daysOffset = 0) {
+  const baseDate = DateTime.isDateTime(originDate) ? originDate : DateTime.fromISO(originDate);
+  return toMarkingFormat(baseDate.plus({days: daysOffset}));
 }
 
+const LOCALES = {
+  en: {
+    monthNames: [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
+    ],
+    monthNamesShort: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+    dayNames: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+    dayNamesShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+    amDesignator: 'AM',
+    pmDesignator: 'PM'
+  }
+};
+
+// TODO changeable
 export function getLocale() {
-  return XDate.locales[XDate.defaultLocale];
+  return LOCALES.en;
 }

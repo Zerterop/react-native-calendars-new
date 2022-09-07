@@ -1,4 +1,4 @@
-import XDate from 'xdate';
+import {DateTime} from 'luxon';
 import {isToday, isPastDate} from '../../dateutils';
 import {toMarkingFormat} from '../../interface';
 import {getDefaultLocale} from '../../services';
@@ -10,7 +10,7 @@ const TOP_POSITION = 65;
 /** Today */
 
 export const getTodayDate = () => {
-  return toMarkingFormat(new XDate());
+  return toMarkingFormat(DateTime.now());
 };
 
 export const getTodayFormatted = () => {

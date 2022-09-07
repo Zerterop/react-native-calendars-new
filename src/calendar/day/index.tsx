@@ -1,7 +1,7 @@
 import omit from 'lodash/omit';
 import isEqual from 'lodash/isEqual';
 import some from 'lodash/some';
-import XDate from 'xdate';
+import {DateTime} from 'luxon';
 import React, {useMemo} from 'react';
 
 import {formatNumbers, isToday} from '../../dateutils';
@@ -16,9 +16,9 @@ import PeriodDay from './period';
 function areEqual(prevProps: DayProps, nextProps: DayProps) {
   const prevPropsWithoutMarkDates = omit(prevProps, 'marking');
   const nextPropsWithoutMarkDates = omit(nextProps, 'marking');
-  const didPropsChange = some(prevPropsWithoutMarkDates, function(value, key) {
+  const didPropsChange = some(prevPropsWithoutMarkDates, function (value, key) {
     //@ts-expect-error
-    return value !== nextPropsWithoutMarkDates[key]; 
+    return value !== nextPropsWithoutMarkDates[key];
   });
   const isMarkingEqual = isEqual(prevProps.marking, nextProps.marking);
   return !didPropsChange && isMarkingEqual;
@@ -31,7 +31,7 @@ export interface DayProps extends BasicDayProps {
 
 const Day = React.memo((props: DayProps) => {
   const {date, marking, dayComponent, markingType} = props;
-  const _date = date ? new XDate(date) : undefined;
+  const _date = date ? DateTime.fromISO(date) : undefined;
   const _isToday = isToday(_date);
 
   const markingAccessibilityLabel = useMemo(() => {
@@ -65,13 +65,13 @@ const Day = React.memo((props: DayProps) => {
 
   const getAccessibilityLabel = useMemo(() => {
     const today = getDefaultLocale().today || 'today';
-    const formatAccessibilityLabel = getDefaultLocale().formatAccessibilityLabel || 'dddd d MMMM yyyy';
+    const formatAccessibilityLabel = getDefaultLocale().formatAccessibilityLabel || 'EEEE d MMMM yyyy';
 
-    return `${_isToday ? today : ''} ${_date?.toString(formatAccessibilityLabel)} ${markingAccessibilityLabel}`;
+    return `${_isToday ? today : ''} ${_date?.toFormat(formatAccessibilityLabel)} ${markingAccessibilityLabel}`;
   }, [_date, marking, _isToday]);
-  
+
   const Component = dayComponent || (markingType === 'period' ? PeriodDay : BasicDay);
-  const dayComponentProps = dayComponent ? {date: xdateToData(date || new XDate())} : undefined;
+  const dayComponentProps = dayComponent ? {date: xdateToData(date || DateTime.now())} : undefined;
 
   return (
     //@ts-expect-error
@@ -81,7 +81,7 @@ const Day = React.memo((props: DayProps) => {
       testID={`${SELECT_DATE_SLOT}-${date}`}
       {...dayComponentProps}
     >
-      {formatNumbers(_date?.getDate())}
+      {formatNumbers(_date?.day)}
     </Component>
   );
 }, areEqual) as any;

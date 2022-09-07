@@ -1,6 +1,6 @@
 import findIndex from 'lodash/findIndex';
 import PropTypes from 'prop-types';
-import XDate from 'xdate';
+import {DateTime} from 'luxon';
 
 import React, {forwardRef, useImperativeHandle, useRef, useEffect, useState, useCallback, useMemo} from 'react';
 import {FlatList, View, ViewStyle, FlatListProps} from 'react-native';
@@ -42,8 +42,8 @@ export interface CalendarListProps extends CalendarProps, Omit<FlatListProps<any
 }
 
 export interface CalendarListImperativeMethods {
-  scrollToDay: (date: XDate | string, offset: number, animated: boolean) => void;
-  scrollToMonth: (date: XDate | string) => void;
+  scrollToDay: (date: DateTime | string, offset: number, animated: boolean) => void;
+  scrollToMonth: (date: DateTime | string) => void;
 }
 
 /**
@@ -55,10 +55,10 @@ export interface CalendarListImperativeMethods {
  */
 const CalendarList = (props: CalendarListProps, ref: any) => {
   useImperativeHandle(ref, () => ({
-    scrollToDay: (date: XDate | string, offset: number, animated: boolean) => {
+    scrollToDay: (date: DateTime | string, offset: number, animated: boolean) => {
       scrollToDay(date, offset, animated);
     },
-    scrollToMonth: (date: XDate | string) => {
+    scrollToMonth: (date: DateTime | string) => {
       scrollToMonth(date);
     }
   }));
@@ -102,7 +102,7 @@ const CalendarList = (props: CalendarListProps, ref: any) => {
     onEndReachedThreshold,
     onEndReached
   } = props;
-  
+
   const calendarProps = extractCalendarProps(props);
   const headerProps = extractHeaderProps(props);
   const calendarSize = horizontal ? calendarWidth : calendarHeight;
@@ -112,13 +112,14 @@ const CalendarList = (props: CalendarListProps, ref: any) => {
   const style = useRef(styleConstructor(theme));
   const list = useRef();
   const range = useRef(horizontal ? 1 : 3);
-  const initialDate = useRef(parseDate(current) || new XDate());
+  const initialDate = useRef(parseDate(current) || DateTime.now());
   const visibleMonth = useRef(currentMonth);
 
   const items = useMemo(() => {
-    const months = [];
+    const months: DateTime[] = [];
     for (let i = 0; i <= pastScrollRange + futureScrollRange; i++) {
-      const rangeDate = initialDate.current?.clone().addMonths(i - pastScrollRange, true);
+      // TODO check overflow impact
+      const rangeDate = initialDate.current?.plus({months: i - pastScrollRange});
       months.push(rangeDate);
     }
     return months;
@@ -133,26 +134,31 @@ const CalendarList = (props: CalendarListProps, ref: any) => {
   }, [propsStyle]);
 
   const initialDateIndex = useMemo(() => {
-    return findIndex(items, function(item) { 
-      return item.toString() === initialDate.current?.toString(); 
+    return findIndex(items, function (item) {
+      return item.toString() === initialDate.current?.toString();
     });
   }, [items]);
 
   useEffect(() => {
     if (current) {
-      scrollToMonth(new XDate(current));
+      scrollToMonth(DateTime.fromISO(current));
     }
   }, [current]);
 
   useDidUpdate(() => {
-    const currMont = currentMonth?.clone();
+    if (!currentMonth) return;
+    const currMont = currentMonth;
     onMonthChange?.(xdateToData(currMont));
     onVisibleMonthsChange?.([xdateToData(currMont)]);
   }, [currentMonth]);
 
-  const scrollToDay = (date: XDate | string, offset: number, animated: boolean) => {
+  const scrollToDay = (date: DateTime | string, offset: number, animated: boolean) => {
     const scrollTo = parseDate(date);
-    const diffMonths = Math.round(initialDate?.current?.clone().setDate(1).diffMonths(scrollTo?.clone().setDate(1)));
+    if (!scrollTo) return;
+    const diffMonths = Math.round(
+      // TODO check if turn around is needed
+      initialDate.current?.startOf('month').diff(scrollTo.startOf('month'), 'months').months
+    );
     let scrollAmount = calendarSize * pastScrollRange + diffMonths * calendarSize + (offset || 0);
 
     if (!horizontal) {
@@ -173,37 +179,51 @@ const CalendarList = (props: CalendarListProps, ref: any) => {
     }
   };
 
-  const scrollToMonth = useCallback((date: XDate | string) => {
-    const scrollTo = parseDate(date);
-    const diffMonths = Math.round(initialDate?.current?.clone().setDate(1).diffMonths(scrollTo?.clone().setDate(1)));
-    const scrollAmount = calendarSize * pastScrollRange + diffMonths * calendarSize;
-    
-    if (scrollAmount !== 0) {
-      // @ts-expect-error
-      list?.current?.scrollToOffset({offset: scrollAmount, animated: animateScroll});
-    }
-  }, [calendarSize]);
+  const scrollToMonth = useCallback(
+    (date: DateTime | string) => {
+      const scrollTo = parseDate(date);
+      if (!scrollTo) return;
+      const diffMonths = Math.round(
+        // TODO check if turn around is needed
+        initialDate.current?.startOf('month').diff(scrollTo.startOf('month'), 'months').months
+      );
+      const scrollAmount = calendarSize * pastScrollRange + diffMonths * calendarSize;
 
-  const addMonth = useCallback((count: number) => {
-    const day = currentMonth?.clone().addMonths(count, true);
-    if (sameMonth(day, currentMonth)) {
-      return;
-    }
-    scrollToMonth(day);
-    setCurrentMonth(day);
-  }, [currentMonth, scrollToMonth]);
+      if (scrollAmount !== 0) {
+        // @ts-expect-error
+        list?.current?.scrollToOffset({offset: scrollAmount, animated: animateScroll});
+      }
+    },
+    [calendarSize]
+  );
 
-  const getMarkedDatesForItem = useCallback((item?: XDate) => {    
-    if (markedDates && item) {      
-      for (const [key, _] of Object.entries(markedDates)) {
-        if (sameMonth(new XDate(key), new XDate(item))) {
-          return markedDates;
+  const addMonth = useCallback(
+    (count: number) => {
+      // TODO check overflow impact
+      const day = currentMonth?.plus({months: count});
+      if (sameMonth(day, currentMonth)) {
+        return;
+      }
+      scrollToMonth(day);
+      setCurrentMonth(day);
+    },
+    [currentMonth, scrollToMonth]
+  );
+
+  const getMarkedDatesForItem = useCallback(
+    (item?: DateTime) => {
+      if (markedDates && item) {
+        for (const [key, _] of Object.entries(markedDates)) {
+          if (sameMonth(DateTime.fromISO(key), item)) {
+            return markedDates;
+          }
         }
       }
-    }
-  }, [markedDates]);
+    },
+    [markedDates]
+  );
 
-  const getItemLayout = useCallback((_: Array<XDate> | undefined | null, index: number) => {
+  const getItemLayout = useCallback((_: Array<DateTime> | undefined | null, index: number) => {
     return {
       length: calendarSize,
       offset: calendarSize * index,
@@ -211,33 +231,39 @@ const CalendarList = (props: CalendarListProps, ref: any) => {
     };
   }, []);
 
-  const isDateInRange = useCallback((date) => {
-    for(let i = -range.current; i <= range.current; i++) {
-      const newMonth = currentMonth?.clone().addMonths(i);
-      if (sameMonth(date, newMonth)) {
-        return true;
+  const isDateInRange = useCallback(
+    date => {
+      for (let i = -range.current; i <= range.current; i++) {
+        const newMonth = currentMonth?.plus({months: i});
+        if (sameMonth(date, newMonth)) {
+          return true;
+        }
       }
-    }
-    return false;
-  }, [currentMonth]);
+      return false;
+    },
+    [currentMonth]
+  );
 
-  const renderItem = useCallback(({item}: any) => {
-    return (
-      <CalendarListItem
-        {...calendarProps}
-        markedDates={getMarkedDatesForItem(item)}
-        item={item}
-        testID={`${testID}_${item}`}
-        style={calendarStyle}
-        // @ts-expect-error - type mismatch - ScrollView's 'horizontal' is nullable
-        horizontal={horizontal}
-        calendarWidth={calendarWidth}
-        calendarHeight={calendarHeight}
-        scrollToMonth={scrollToMonth}
-        visible={isDateInRange(item)}
-      />
-    );
-  }, [horizontal, calendarStyle, calendarWidth, testID, getMarkedDatesForItem, isDateInRange, calendarProps]);
+  const renderItem = useCallback(
+    ({item}: any) => {
+      return (
+        <CalendarListItem
+          {...calendarProps}
+          markedDates={getMarkedDatesForItem(item)}
+          item={item}
+          testID={`${testID}_${item}`}
+          style={calendarStyle}
+          // @ts-expect-error - type mismatch - ScrollView's 'horizontal' is nullable
+          horizontal={horizontal}
+          calendarWidth={calendarWidth}
+          calendarHeight={calendarHeight}
+          scrollToMonth={scrollToMonth}
+          visible={isDateInRange(item)}
+        />
+      );
+    },
+    [horizontal, calendarStyle, calendarWidth, testID, getMarkedDatesForItem, isDateInRange, calendarProps]
+  );
 
   const renderStaticHeader = () => {
     if (staticHeader && horizontal) {
@@ -270,10 +296,10 @@ const CalendarList = (props: CalendarListProps, ref: any) => {
   }, []);
 
   const viewabilityConfigCallbackPairs = useRef([
-    { 
+    {
       viewabilityConfig: viewabilityConfig.current,
       onViewableItemsChanged
-    },
+    }
   ]);
 
   return (
@@ -288,7 +314,7 @@ const CalendarList = (props: CalendarListProps, ref: any) => {
         renderItem={renderItem}
         getItemLayout={getItemLayout}
         initialNumToRender={range.current}
-        initialScrollIndex={initialDateIndex} 
+        initialScrollIndex={initialDateIndex}
         viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs.current}
         testID={testID}
         onLayout={onLayout}

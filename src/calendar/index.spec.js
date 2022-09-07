@@ -1,4 +1,4 @@
-import XDate from 'xdate';
+import {DateTime} from 'luxon';
 import React from 'react';
 import {getTextNodes} from 'react-component-driver';
 import {advanceTo, clear as clearDate} from 'jest-date-mock';
@@ -197,7 +197,7 @@ describe('Calendar', () => {
       const text = 'My Custom Header';
       const renderHeader = jest.fn().mockReturnValue(React.createElement('Text', {}, text));
       const drv = new CalendarDriver().withDefaultProps({renderHeader}).render();
-      expect(renderHeader).toBeCalledWith(XDate(currentDate));
+      expect(renderHeader).toBeCalledWith(DateTime.fromJSDate(currentDate));
       expect(getTextNodes(drv.getComponent())).toContain(text);
       expect(drv.getHeader().getTitle()).toBeFalsy();
     });

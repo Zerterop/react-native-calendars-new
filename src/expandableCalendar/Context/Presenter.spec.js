@@ -1,4 +1,4 @@
-import XDate from 'xdate';
+import {DateTime} from 'luxon';
 // import {UpdateSources} from '../commons';
 import {toMarkingFormat} from '../../interface';
 import {
@@ -15,7 +15,7 @@ import {
 describe('Context provider tests', () => {
   const pastDate = '2021-04-04';
   const futureDate = '2050-04-04';
-  const todayDate = toMarkingFormat(XDate());
+  const todayDate = toMarkingFormat(DateTime.now());
   // const updateSources = UpdateSources.CALENDAR_INIT;
 
   describe('Button Icon test', () => {
@@ -138,7 +138,7 @@ describe('Context provider tests', () => {
   });
 
   describe('onTodayPressed tests', () => {
-    it("Expect return value to be XDate today's date", () => {
+    it("Expect return value to be DateTime today's date", () => {
       expect(getTodayDate()).toEqual(todayDate);
     });
   });

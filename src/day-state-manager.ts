@@ -1,8 +1,9 @@
+import {DateTime} from 'luxon';
+
 const {isToday, isDateNotInRange, sameMonth} = require('./dateutils');
 const {toMarkingFormat} = require('./interface');
 
-
-export function getState(day: XDate, current: XDate, props: any) {
+export function getState(day: DateTime, current: DateTime, props: any) {
   const {minDate, maxDate, disabledByDefault, context} = props;
   let state = '';
 

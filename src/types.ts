@@ -1,3 +1,4 @@
+import {DateTime} from 'luxon';
 import {ViewStyle, TextStyle} from 'react-native';
 import {MarkingProps} from './calendar/day/marking';
 
@@ -72,11 +73,11 @@ export interface Theme {
   weekVerticalMargin?: number;
   stylesheet?: {
     calendar?: {
-      main?: object; 
+      main?: object;
       header?: object;
     };
     day?: {
-      basic?: object; 
+      basic?: object;
       period?: object;
     };
     dot?: object;
@@ -85,7 +86,7 @@ export interface Theme {
       main?: object;
     };
     agenda?: {
-      main?: object; 
+      main?: object;
       list?: object;
     };
     expandable?: {
@@ -98,13 +99,13 @@ export type AgendaEntry = {
   name: string;
   height: number;
   day: string;
-}
+};
 
 export type AgendaSchedule = {
   [date: string]: AgendaEntry[];
-}
+};
 
 export interface DayAgenda {
   reservation?: AgendaEntry;
-  date?: XDate;
+  date?: DateTime;
 }

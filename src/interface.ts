@@ -1,4 +1,4 @@
-const XDate = require('xdate');
+import {DateTime} from 'luxon';
 
 export function padNumber(n: number) {
   if (n < 10) {
@@ -7,14 +7,15 @@ export function padNumber(n: number) {
   return n;
 }
 
-export function xdateToData(date: XDate | string) {
-  const d = date instanceof XDate ? date : new XDate(date);
+export function xdateToData(date: DateTime | string) {
+  const d = DateTime.isDateTime(date) ? date : DateTime.fromISO(date);
   const dateString = toMarkingFormat(d);
   return {
-    year: d.getFullYear(),
-    month: d.getMonth() + 1,
-    day: d.getDate(),
-    timestamp: new XDate(dateString, true).getTime(),
+    year: d.year,
+    month: d.month,
+    day: d.day,
+    // potential bug here but current behaviour maintained
+    timestamp: d.setZone('utc', {keepLocalTime: true}).startOf('day').toMillis(),
     dateString: dateString
   };
 }
@@ -24,31 +25,29 @@ export function parseDate(d?: any) {
     return;
   } else if (d.timestamp) {
     // conventional data timestamp
-    return new XDate(d.timestamp, true);
-  } else if (d instanceof XDate) {
-    // xdate
-    return new XDate(toMarkingFormat(d), true);
+    return DateTime.fromMillis(d.timestamp, {zone: 'utc'});
+  } else if (DateTime.isDateTime(d)) {
+    // DateTime
+    return DateTime.utc(d.year, d.month, d.day);
   } else if (d.getTime) {
     // javascript date
     const dateString = d.getFullYear() + '-' + padNumber(d.getMonth() + 1) + '-' + padNumber(d.getDate());
-    return new XDate(dateString, true);
+    return DateTime.fromISO(dateString, {zone: 'utc'});
   } else if (d.year) {
     const dateString = d.year + '-' + padNumber(d.month) + '-' + padNumber(d.day);
-    return new XDate(dateString, true);
-  } else if (d) {
-    // timestamp number or date formatted as string
-    return new XDate(d, true);
+    return DateTime.fromISO(dateString, {zone: 'utc'});
+  } else if (typeof d === 'number') {
+    // timestamp nuber
+    return DateTime.fromMillis(d, {zone: 'utc'});
+  } else if (typeof d === 'string') {
+    // date formatted as string
+    return DateTime.fromISO(d, {zone: 'utc'});
   }
 }
 
-export function toMarkingFormat(d: XDate) {
-  if (!isNaN(d.getTime())) {
-    const year = `${d.getFullYear()}`;
-    const month = d.getMonth() + 1;
-    const doubleDigitMonth = month < 10 ? `0${month}` : `${month}`;
-    const day = d.getDate();
-    const doubleDigitDay = day < 10 ? `0${day}` : `${day}`;
-    return year + '-' + doubleDigitMonth + '-' + doubleDigitDay;
+export function toMarkingFormat(dt: DateTime) {
+  if (dt.isValid) {
+    return dt.toISODate();
   }
   return 'Invalid Date';
 }

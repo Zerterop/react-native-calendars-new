@@ -154,10 +154,9 @@ const CalendarList = (props: CalendarListProps, ref: any) => {
 
   const scrollToDay = (date: DateTime | string, offset: number, animated: boolean) => {
     const scrollTo = parseDate(date);
-    if (!scrollTo) return;
+    if (!scrollTo || !initialDate.current) return;
     const diffMonths = Math.round(
-      // TODO check if turn around is needed
-      initialDate.current?.startOf('month').diff(scrollTo.startOf('month'), 'months').months
+      scrollTo.startOf('month').startOf('month').diff(initialDate.current, 'months').months
     );
     let scrollAmount = calendarSize * pastScrollRange + diffMonths * calendarSize + (offset || 0);
 
@@ -182,10 +181,9 @@ const CalendarList = (props: CalendarListProps, ref: any) => {
   const scrollToMonth = useCallback(
     (date: DateTime | string) => {
       const scrollTo = parseDate(date);
-      if (!scrollTo) return;
+      if (!scrollTo || !initialDate.current) return;
       const diffMonths = Math.round(
-        // TODO check if turn around is needed
-        initialDate.current?.startOf('month').diff(scrollTo.startOf('month'), 'months').months
+        scrollTo.startOf('month').startOf('month').diff(initialDate.current, 'months').months
       );
       const scrollAmount = calendarSize * pastScrollRange + diffMonths * calendarSize;
 

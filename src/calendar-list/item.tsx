@@ -81,7 +81,7 @@ const CalendarListItem = React.memo((props: CalendarListItemProps) => {
   );
 
   if (!visible) {
-    return <Text style={textStyle}>{dateString}</Text>;
+    return <Text style={textStyle}>{DateTime.fromISO(dateString).toFormat('yyyy-MM')}</Text>;
   }
   return (
     <Calendar

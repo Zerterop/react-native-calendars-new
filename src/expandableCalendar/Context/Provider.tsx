@@ -1,5 +1,3 @@
-import XDate from 'xdate';
-
 import React, {useEffect, useRef, useState, useCallback, useMemo} from 'react';
 import {Animated, TouchableOpacity, View, ViewStyle, ViewProps, StyleProp} from 'react-native';
 
@@ -19,6 +17,7 @@ import {
   getTodayDate,
   getTodayFormatted
 } from './Presenter';
+import {DateTime} from 'luxon';
 
 const TOP_POSITION = 65;
 
@@ -101,8 +100,8 @@ const CalendarProvider = (props: CalendarContextProviderProps) => {
 
     onDateChanged?.(date, updateSource);
 
-    if (!sameMonth(new XDate(date), new XDate(prevDate.current))) {
-      onMonthChange?.(xdateToData(new XDate(date)), updateSource);
+    if (!sameMonth(DateTime.fromISO(date), DateTime.fromISO(prevDate.current))) {
+      onMonthChange?.(xdateToData(DateTime.fromISO(date)), updateSource);
     }
   }, [onDateChanged, onMonthChange]);
 

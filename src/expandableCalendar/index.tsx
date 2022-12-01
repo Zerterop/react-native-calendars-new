@@ -2,8 +2,8 @@ import first from 'lodash/first';
 import isFunction from 'lodash/isFunction';
 import isNumber from 'lodash/isNumber';
 import throttle from 'lodash/throttle';
+import {DateTime} from 'luxon'
 
-import XDate from 'xdate';
 
 import React, {useContext, useRef, useState, useEffect, useCallback, useMemo} from 'react';
 import {
@@ -132,12 +132,12 @@ const ExpandableCalendar = (props: ExpandableCalendarProps) => {
   /** Date */
 
   const getYear = (date: string) => {
-    const d = new XDate(date);
-    return d.getFullYear();
+    const d = DateTime.fromISO(date);
+    return d.year;
   };
   const getMonth = (date: string) => {
-    const d = new XDate(date);
-    return d.getMonth() + 1; // getMonth() returns month's index' (0-11)
+    const d = DateTime.fromISO(date);
+    return d.month; 
   };
   const visibleMonth = useRef(getMonth(date));
   const visibleYear = useRef(getYear(date));
@@ -159,7 +159,7 @@ const ExpandableCalendar = (props: ExpandableCalendarProps) => {
   /** Number of weeks */
 
   const getNumberOfWeeksInMonth = (month: string) => {
-    const days = page(new XDate(month), firstDay);
+    const days = page(DateTime.fromISO(month), firstDay);
     return days.length / 7;
   };
   const numberOfWeeks = useRef(getNumberOfWeeksInMonth(date));
@@ -408,12 +408,12 @@ const ExpandableCalendar = (props: ExpandableCalendarProps) => {
 
   /** Events */
 
-  const _onPressArrowLeft = useCallback((method: () => void, month?: XDate) => {
+  const _onPressArrowLeft = useCallback((method: () => void, month?: DateTime) => {
     onPressArrowLeft?.(method, month);
     scrollPage(false);
   }, [onPressArrowLeft, scrollPage]);
 
-  const _onPressArrowRight = useCallback((method: () => void, month?: XDate) => {
+  const _onPressArrowRight = useCallback((method: () => void, month?: DateTime) => {
     onPressArrowRight?.(method, month);
     scrollPage(true);
   }, [onPressArrowRight, scrollPage]);
@@ -492,7 +492,7 @@ const ExpandableCalendar = (props: ExpandableCalendarProps) => {
   };
 
   const renderAnimatedHeader = () => {
-    const monthYear = new XDate(date).toString('MMMM yyyy');
+    const monthYear = DateTime.fromISO(date).toFormat('MMMM yyyy');
 
     return (
       <Animated.View

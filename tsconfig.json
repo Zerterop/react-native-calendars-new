@@ -5,6 +5,9 @@
     // "outDir": "dist",
     "esModuleInterop": true,
     "moduleResolution": "node",
+    "types": [
+      "node"
+    ],
     "jsx": "react-native",
     "skipLibCheck": true,
     // "resolveJsonModule": true,
@@ -32,5 +35,5 @@
     "example/src/screens/calendarListScreen.tsx",
     "example/src/screens/newCalendarListScreen.tsx"
   ],
-  "exclude": ["node_modules", "testUtils"]
+  "exclude": [ "testUtils"]
 }

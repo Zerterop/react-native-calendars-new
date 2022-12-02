@@ -8,7 +8,7 @@ import debounce from 'lodash/debounce';
 import isEqual from 'lodash/isEqual';
 
 
-import XDate from 'xdate';
+import {DateTime} from 'luxon'
 
 import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {
@@ -130,7 +130,7 @@ const AgendaList = (props: AgendaListProps) => {
     for (let j = 1; j < sections.length; j++) {
       const prev = parseDate(sections[j - 1]?.title);
       const next = parseDate(sections[j]?.title);
-      const cur = new XDate(date);
+      const cur = DateTime.fromISO(date);
       if (isGTE(cur, prev) && isGTE(next, cur)) {
         i = sameDate(prev, cur) ? j - 1 : j;
         break;
@@ -153,7 +153,7 @@ const AgendaList = (props: AgendaListProps) => {
         const moment = getMoment();
         sectionTitle = moment(title).format(dayFormat);
       } else {
-        sectionTitle = new XDate(title).toString(dayFormat);
+        sectionTitle = DateTime.fromISO(title).toFormat(dayFormat);
       }
     }
 

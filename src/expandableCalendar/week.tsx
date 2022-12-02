@@ -1,4 +1,4 @@
-import XDate from 'xdate';
+import {DateTime} from 'luxon';
 import React, {useRef, useMemo, useCallback} from 'react';
 import {View} from 'react-native';
 
@@ -29,7 +29,7 @@ const Week = (props: WeekProps) => {
   //   return <BasicDay key={`week-${weekNumber}`} theme={this.props.theme} marking={{disableTouchEvent: true}} state='disabled'>{weekNumber}</BasicDay>;
   // }
 
-  const renderDay = (day: XDate, id: number) => {
+  const renderDay = (day: DateTime, id: number) => {
     // hide extra days
     if (current && hideExtraDays) {
       if (!sameMonth(day, currXdate)) {
@@ -59,8 +59,8 @@ const Week = (props: WeekProps) => {
       const todayIndex = dates?.indexOf(parseDate(new Date())) || -1;
       const sliced = dates.slice(todayIndex, numberOfDays);
       const datesToRender = numberOfDays > 1 && todayIndex > -1 ? sliced : dates;
-      datesToRender.forEach((day: XDate | string, id: number) => {
-        const d = day instanceof XDate ? day : new XDate(day);
+      datesToRender.forEach((day: DateTime | string, id: number) => {
+        const d = day instanceof DateTime ? day : DateTime.fromISO(day);
         week.push(renderDay(d, id));
       }, this);
     }

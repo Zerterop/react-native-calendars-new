@@ -19,7 +19,7 @@
     {
       "name": "dayFormat",
       "type": "string",
-      "description": "Day format in section title. Formatting values: http://arshaw.com/xdate/#Formatting"
+      "description": "Day format in section title. "
     },
     {
       "name": "dayFormatter",

@@ -1,6 +1,6 @@
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import XDate from 'xdate';
+import {DateTime} from 'luxon';
 
 import InfiniteList from '../../infinite-list';
 import Week from '../week';
@@ -135,10 +135,9 @@ export default WeekCalendar;
 
 // function getDate({current, context, firstDay = 0}: WeekCalendarProps, weekIndex: number) {
 function getDate(date: string, firstDay: number, weekIndex: number) {
-  // const d = new XDate(current || context.date);
-  const d = new XDate(date);
+  const d = DateTime.fromISO(date);
   // get the first day of the week as date (for the on scroll mark)
-  let dayOfTheWeek = d.getDay();
+  let dayOfTheWeek = d.weekday-1;
   if (dayOfTheWeek < firstDay && firstDay > 0) {
     dayOfTheWeek = 7 + dayOfTheWeek;
   }

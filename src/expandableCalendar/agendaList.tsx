@@ -44,7 +44,6 @@ const viewabilityConfig = {
 export interface AgendaListProps extends SectionListProps<any, DefaultSectionT> {
   /** Specify theme properties to override specific styles for calendar parts */
   theme?: Theme;
-  /** day format in section title. Formatting values: http://arshaw.com/xdate/#Formatting */
   dayFormat?: string;
   /** a function to custom format the section header's title */
   dayFormatter?: (arg0: string) => string;

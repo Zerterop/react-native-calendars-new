@@ -1,6 +1,6 @@
 import memoize from 'memoize-one';
 import PropTypes from 'prop-types';
-import XDate from 'xdate';
+import {DateTime} from 'luxon';
 import {Map} from 'immutable';
 
 import React, {Component} from 'react';
@@ -87,9 +87,9 @@ class WeekCalendar extends Component<WeekCalendarProps, State> {
 
   getDate(weekIndex: number) {
     const {current, context, firstDay = 0} = this.props;
-    const d = new XDate(current || context.date);
+    const d = DateTime.fromISO(current || context.date);
     // get the first day of the week as date (for the on scroll mark)
-    let dayOfTheWeek = d.getDay();
+    let dayOfTheWeek = d.weekday-1;
     if (dayOfTheWeek < firstDay && firstDay > 0) {
       dayOfTheWeek = 7 + dayOfTheWeek;
     }

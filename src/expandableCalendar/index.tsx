@@ -577,7 +577,6 @@ const ExpandableCalendar = (props: ExpandableCalendarProps) => {
         headerStyle={_headerStyle}
         timelineLeftInset={timelineLeftInset}
       />
-      </>
     );
   };
 

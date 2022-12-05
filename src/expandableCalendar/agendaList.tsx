@@ -152,7 +152,7 @@ const AgendaList = (props: AgendaListProps) => {
         const moment = getMoment();
         sectionTitle = moment(title).format(dayFormat);
       } else {
-        sectionTitle = DateTime.fromISO(title).toFormat(dayFormat);
+        sectionTitle = DateTime.fromISO(title).toLocaleString({weekday: 'long', month: 'long', day: 'numeric' });
       }
     }
 

@@ -18,7 +18,7 @@ const Week = (props: WeekProps) => {
   const {theme, current, firstDay, hideExtraDays, markedDates, onDayPress, onDayLongPress, style: propsStyle, numberOfDays = 1, timelineLeftInset} = props;
   const style = useRef(styleConstructor(theme));
   const dayProps = extractDayProps(props);
-  const currXdate = parseDate(current);
+  const currDate = parseDate(current);
   const getWeek = useCallback((date?: string) => {
     if (date) {
       return getWeekDates(date, firstDay);
@@ -32,7 +32,7 @@ const Week = (props: WeekProps) => {
   const renderDay = (day: DateTime, id: number) => {
     // hide extra days
     if (current && hideExtraDays) {
-      if (!sameMonth(day, currXdate)) {
+      if (!sameMonth(day, currDate)) {
         return <View key={id} style={style.current.emptyDayContainer}/>;
       }
     }
@@ -42,7 +42,7 @@ const Week = (props: WeekProps) => {
         <Day
           {...dayProps}
           date={toMarkingFormat(day)}
-          state={getState(day, currXdate, props)}
+          state={getState(day, currDate, props)}
           marking={markedDates?.[toMarkingFormat(day)]}
           onPress={onDayPress}
           onLongPress={onDayLongPress}

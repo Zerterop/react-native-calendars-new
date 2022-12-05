@@ -89,7 +89,7 @@ class WeekCalendar extends Component<WeekCalendarProps, State> {
     const {current, context, firstDay = 0} = this.props;
     const d = DateTime.fromISO(current || context.date);
     // get the first day of the week as date (for the on scroll mark)
-    let dayOfTheWeek = d.weekday-1;
+    let dayOfTheWeek = d.weekday % 7 ;
     if (dayOfTheWeek < firstDay && firstDay > 0) {
       dayOfTheWeek = 7 + dayOfTheWeek;
     }

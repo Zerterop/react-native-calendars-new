@@ -279,10 +279,10 @@ const ExpandableCalendar = (props: ExpandableCalendarProps) => {
       const d = parseDate(date);
 
       if (isOpen) {
-        d.setDate(1);
-        d.addMonths(next ? 1 : -1);
+        d.startOf('month');
+        d.plus({ months: next ? 1 : -1 });
       } else {
-        let dayOfTheWeek = d.getDay();
+        let dayOfTheWeek = d.weekday % 7;
 
         if (dayOfTheWeek < firstDay && firstDay > 0) {
           dayOfTheWeek = 7 + dayOfTheWeek;
@@ -290,10 +290,10 @@ const ExpandableCalendar = (props: ExpandableCalendarProps) => {
 
         if (numberOfDays) {
           const daysToAdd = numberOfDays <= 1 ? 7 : numberOfDays;
-          d.addDays(next ? daysToAdd : -daysToAdd);
+          d.plus({ days: next ? daysToAdd : -daysToAdd });
         } else {
           const firstDayOfWeek = (next ? 7 : -7) - dayOfTheWeek + firstDay;
-          d.addDays(firstDayOfWeek);
+          d.plus({ days: firstDayOfWeek });
         }
 
       }

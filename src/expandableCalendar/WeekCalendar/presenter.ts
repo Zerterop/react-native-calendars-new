@@ -72,7 +72,7 @@ class Presenter {
     const d = DateTime.fromISO(current || context.date);
     const numberOfDays = context.numberOfDays;
     // get the first day of the week as date (for the on scroll mark)
-    let dayOfTheWeek = d.weekday-1;
+    let dayOfTheWeek = d.weekday % 7;
     if (dayOfTheWeek < firstDay && firstDay > 0) {
       dayOfTheWeek = 7 + dayOfTheWeek;
     }
@@ -81,8 +81,8 @@ class Presenter {
       return generateDay(d, weekIndex * numberOfDays);
     } else {
       // leave the current date in the visible week as is
-      const dd = weekIndex === 0 ? d : d.addDays(firstDay - dayOfTheWeek);
-      return toMarkingFormat(dd.addWeeks(weekIndex));
+      const dd = weekIndex === 0 ? d : d.plus({days:firstDay - dayOfTheWeek});
+      return toMarkingFormat(dd.plus({weeks:weekIndex}));
     }
   }
 

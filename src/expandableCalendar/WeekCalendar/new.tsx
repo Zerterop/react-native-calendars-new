@@ -137,7 +137,7 @@ export default WeekCalendar;
 function getDate(date: string, firstDay: number, weekIndex: number) {
   const d = DateTime.fromISO(date);
   // get the first day of the week as date (for the on scroll mark)
-  let dayOfTheWeek = d.weekday-1;
+  let dayOfTheWeek = d.weekday % 7;
   if (dayOfTheWeek < firstDay && firstDay > 0) {
     dayOfTheWeek = 7 + dayOfTheWeek;
   }

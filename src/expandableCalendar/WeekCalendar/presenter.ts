@@ -72,7 +72,7 @@ class Presenter {
     const d = DateTime.fromISO(current || context.date);
     const numberOfDays = context.numberOfDays;
     // get the first day of the week as date (for the on scroll mark)
-    let dayOfTheWeek = d.weekday % 7;
+    let dayOfTheWeek = d.weekday-1;
     if (dayOfTheWeek < firstDay && firstDay > 0) {
       dayOfTheWeek = 7 + dayOfTheWeek;
     }

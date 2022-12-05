@@ -120,7 +120,7 @@ export function isDateNotInRange(date: DateTime, minDate: string, maxDate: strin
   return (minDate && !isGTE(date, DateTime.fromISO(minDate))) || (maxDate && !isLTE(date, DateTime.fromISO(maxDate)));
 }
 
-function getWeekDates(date: string, firstDay = 0, format?: string) {
+export function getWeekDates(date: string, firstDay = 0, format?: string) {
   const d = DateTime.fromISO(date);
   if (d.isValid) {
     const daysArray = [d];

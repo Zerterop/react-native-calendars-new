@@ -76,6 +76,8 @@ export interface CalendarHeaderProps {
   current?: string;
   /** Left inset for the timeline calendar header, default is 72 */
   timelineLeftInset?: number;
+  /** Formats the header of the calendar */
+  headerFormatter?: (headerDate: string) => string
 }
 
 const accessibilityActions = [
@@ -110,7 +112,8 @@ const CalendarHeader = forwardRef((props: CalendarHeaderProps, ref) => {
     importantForAccessibility,
     numberOfDays,
     current = '',
-    timelineLeftInset
+    timelineLeftInset,
+    headerFormatter
   } = props;
 
   const numberOfDaysCondition = useMemo(() => {
@@ -213,6 +216,9 @@ const CalendarHeader = forwardRef((props: CalendarHeaderProps, ref) => {
       return customHeaderTitle;
     }
 
+    const headerMonthText = headerFormatter ? headerFormatter(month)
+      : formatNumbers(month?.toFormat(monthFormat as string))
+
     return (
       <Fragment>
         <Text
@@ -221,7 +227,7 @@ const CalendarHeader = forwardRef((props: CalendarHeaderProps, ref) => {
           testID={testID ? `${HEADER_MONTH_NAME}-${testID}` : HEADER_MONTH_NAME}
           {...webProps}
         >
-          {formatNumbers(month?.toFormat(monthFormat as string))}
+          {headerMonthText}
         </Text>
       </Fragment>
     );

@@ -65,6 +65,8 @@ export interface CalendarProps extends CalendarHeaderProps, DayProps {
   customHeader?: any;
   /** Allow selection of dates before minDate or after maxDate */
   allowSelectionOutOfRange?: boolean;
+  /** Formats the header of the calendar */
+  headerFormatter?: (headerDate: string) => string
 }
 
 /**
@@ -96,7 +98,8 @@ const Calendar = (props: CalendarProps) => {
     accessibilityElementsHidden,
     importantForAccessibility,
     testID,
-    style: propsStyle
+    style: propsStyle,
+    headerFormatter
   } = props;
   const [currentMonth, setCurrentMonth] = useState(
     current || initialDate ? parseDate(current || initialDate) : DateTime.now()
@@ -290,6 +293,7 @@ const Calendar = (props: CalendarProps) => {
         month={currentMonth}
         addMonth={addMonth}
         displayLoadingIndicator={shouldDisplayIndicator}
+        headerFormatter={headerFormatter}
       />
     );
   };
@@ -340,5 +344,6 @@ Calendar.propTypes = {
   disabledByDefault: PropTypes.bool,
   headerStyle: PropTypes.oneOfType([PropTypes.object, PropTypes.number, PropTypes.array]),
   customHeader: PropTypes.any,
-  allowSelectionOutOfRange: PropTypes.bool
+  allowSelectionOutOfRange: PropTypes.bool,
+  headerFormatter: PropTypes.func
 };

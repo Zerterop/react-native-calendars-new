@@ -39,6 +39,8 @@ export interface CalendarListProps extends CalendarProps, Omit<FlatListProps<any
   showScrollIndicator?: boolean;
   /** Whether to animate the auto month scroll */
   animateScroll?: boolean;
+  /** Formats the header of the calendar */
+  headerFormatter?: (headerDate: string) => string
 }
 
 export interface CalendarListImperativeMethods {
@@ -72,6 +74,7 @@ const CalendarList = (props: CalendarListProps, ref: any) => {
     headerStyle,
     onMonthChange,
     onVisibleMonthsChange,
+    headerFormatter,
     /** CalendarList props */
     pastScrollRange = PAST_SCROLL_RANGE,
     futureScrollRange = FUTURE_SCROLL_RANGE,
@@ -274,6 +277,7 @@ const CalendarList = (props: CalendarListProps, ref: any) => {
           addMonth={addMonth}
           accessibilityElementsHidden={true} // iOS
           importantForAccessibility={'no-hide-descendants'} // Android
+          headerFormatter={headerFormatter}
         />
       );
     }

@@ -10,6 +10,7 @@ import isEqual from 'lodash/isEqual';
 
 import {DateTime} from 'luxon'
 
+
 import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {
   Text,
@@ -152,7 +153,7 @@ const AgendaList = (props: AgendaListProps) => {
         const moment = getMoment();
         sectionTitle = moment(title).format(dayFormat);
       } else {
-        sectionTitle = DateTime.fromISO(title).toLocaleString({weekday: 'long', month: 'long', day: 'numeric' });
+        sectionTitle = DateTime.fromISO(title).toFormat(dayFormat);
       }
     }
 

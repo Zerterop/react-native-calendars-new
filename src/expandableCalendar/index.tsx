@@ -71,6 +71,8 @@ export interface ExpandableCalendarProps extends CalendarListProps {
   closeThreshold?: number;
   /** Whether to close the calendar on day press. Default = true */
   closeOnDayPress?: boolean;
+  /** Formats the header of the calendar */
+  headerFormatter?: (headerDate: string) => string
 }
 
 const headerStyleOverride = {
@@ -123,6 +125,7 @@ const ExpandableCalendar = (props: ExpandableCalendarProps) => {
     onPressArrowLeft,
     onPressArrowRight,
     renderArrow, 
+    headerFormatter,
     testID,
     ...others
   } = props;
@@ -276,11 +279,11 @@ const ExpandableCalendar = (props: ExpandableCalendarProps) => {
 
   const scrollPage = useCallback((next: boolean) => {
     if (horizontal) {
-      const d = parseDate(date);
+      let d = parseDate(date);
 
       if (isOpen) {
-        d.startOf('month');
-        d.plus({ months: next ? 1 : -1 });
+        d = d.startOf('month');
+        d = d.plus({ months: next ? 1 : -1 });
       } else {
         let dayOfTheWeek = d.weekday % 7;
 
@@ -290,17 +293,17 @@ const ExpandableCalendar = (props: ExpandableCalendarProps) => {
 
         if (numberOfDays) {
           const daysToAdd = numberOfDays <= 1 ? 7 : numberOfDays;
-          d.plus({ days: next ? daysToAdd : -daysToAdd });
+          d = d.plus({ days: next ? daysToAdd : -daysToAdd });
         } else {
           const firstDayOfWeek = (next ? 7 : -7) - dayOfTheWeek + firstDay;
-          d.plus({ days: firstDayOfWeek });
+          d = d.plus({ days: firstDayOfWeek });
         }
 
       }
 
       setDate?.(toMarkingFormat(d), UpdateSources.PAGE_SCROLL);
     }
-  }, [horizontal, isOpen, firstDay, numberOfDays, setDate, date]);
+  }, [horizontal, isOpen, firstDay, numberOfDays, setDate, date, toMarkingFormat]);
 
   /** Pan Gesture */
 
@@ -576,6 +579,7 @@ const ExpandableCalendar = (props: ExpandableCalendarProps) => {
         numberOfDays={numberOfDays}
         headerStyle={_headerStyle}
         timelineLeftInset={timelineLeftInset}
+        headerFormatter={headerFormatter}
       />
     );
   };
@@ -590,6 +594,7 @@ const ExpandableCalendar = (props: ExpandableCalendarProps) => {
           onDayPress={_onDayPress}
           hideExtraDays
           renderArrow={_renderArrow}
+          headerFormatter={headerFormatter}
         />
       ) : (
         <Animated.View ref={wrapper} style={wrapperStyle} {...panResponder.panHandlers}>
